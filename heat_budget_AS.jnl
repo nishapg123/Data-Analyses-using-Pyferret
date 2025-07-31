@@ -1,0 +1,44 @@
+!this program is to plot the standard deviation of OHC over AS
+SET MEMORY/SIZE=1500
+use "/home/nisha/Documents/OHC_Work/AS_warming_2000_2022/fluxes/airseaflux_era5.nc"
+use "/home/nisha/Documents/OHC_Work/AS_warming_2000_2022/oceanadvection/oceanadvection.nc"
+use "/home/nisha/Documents/OHC_Work/AS_warming_2000_2022/entrainment/entrainmnet_term.nc"
+use "/home/nisha/Documents/OHC_Work/data/NOAA_OI_SST/sst_1982_2019.nc"
+
+set region/x=40:80/y=0:30/t=15-jan-2000:15-dec-2022
+
+let dT = SSTIO[d=4,t=@DDC]
+
+DEFINE VIEWPORT/XLIM=0.05,1/YLIM=.1,0.9 U1
+DEFINE VIEWPORT/XLIMITS=.10,.3/YLIMITS=.6,.92 legend1
+
+PPL AXLSZE 0.13,0.13
+PPL AXLINT 2,1		  ! no. of major tics xaxis,yaxis
+PPL AXNMTC 2,1            ! no. of minor tics xaxis,yaxis
+PPL TICS ,,,,-1,-1        !the orientation of tics 
+set text/font=times/bold
+set text/isiz=4 CBAR
+
+SET VIEWPORT U1;go magnify 1.2
+ppl cross 1
+plot/nolabel/ylim=-6e-7:7e-7:1e-7/col=7 dT[y=5:20@ave,x=60:72@ave]
+plot/ov/nolabel/col=8 (AIRSEA_FLUX[d=1,y=5:20@ave,x=60:72@ave,k=1])
+plot/ov/nolabel/col=9 ocadv[d=2,y=5:20@ave,x=60:72@ave]
+plot/ov/nolabel/col=10 ENT[d=3,y=5:20@ave,x=60:72@ave]
+!plot/ov/nolabel/col=11 (AIRSEA_FLUX[d=1,y=5:20@ave,x=60:72@ave,k=1])+ocadv[d=2,y=5:20@ave,x=60:72@ave,gt=AIRSEA_FLUX[d=1]]+ENT[d=3,y=5:20@ave,x=60:72@ave,gt=AIRSEA_FLUX[d=1]]
+
+LABEL/NOUSER -1.2,2.5, -1, 90, 0.15, "(<sup>o</sup>C s<sup>-1</sup>)"
+LABEL/NOUSER 4,-0.7, -1, 0, 0.15, "Year"
+
+set view legend1
+
+plot/vs/nolab/axes=0,0,0,0/line/col=7 {0.0,0.1}, {1.5,1.5}
+plot/over/vs/nolab/line/col=8 {0.0,0.1}, {1.25,1.25}
+plot/over/vs/nolab/line/col=9 {0.0,0.1}, {1,1}
+plot/over/vs/nolab/line/col=10 {0.0,0.1}, {0.75,0.75}
+LABEL/NOUSER 2,1.35, -1, 0, 0.20, "dT" 
+LABEL/NOUSER 2,1.0, -1, 0, 0.20, "air-sea flux"
+LABEL/NOUSER 2,0.6, -1, 0, 0.20, "advection" 
+LABEL/NOUSER 2,0.2, -1, 0, 0.20, "entrainment"
+cancel text
+
