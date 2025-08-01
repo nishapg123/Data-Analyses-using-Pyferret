@@ -1,0 +1,34 @@
+** Calculation of GPI
+SET MEMORY/SIZE=1500
+use "/home/nisha/Documents/OHC_Work/data/ERA5/ORAS5/temp/temp_1979_2022.nc"
+use "/home/nisha/Documents/OHC_Work/data/ERA5/heatflux/heatflux_2000_23.nc"
+use "/home/nisha/Documents/OHC_Work/data/ERA5/vorticity/1000mb/abs_vorticity1000_1979_2022.nc"
+
+set region/t=15-jan-2000:15-dec-2022/y=0:30/x=30:120
+
+set mode interpolate
+let tem1 =VOTEMPER[d=1,y=0:30:1,x=30:120:1]
+let str1 = STR[d=2,y=0:30:1,x=30:120:1]
+let absvor1 = absvor[d=3,y=0:30:1,x=30:120:1]
+
+let LW =STR1[t=15-jan-2000:15-dec-2022,k=1]/86400*(-1) !Net Longwave Radiation,to convert monthly means of J/m2 to W/m2 according to era5 documentation
+let d26= tem1[z=@loc:26,t=15-jan-2000:15-dec-2022] 	!26 degree isotherm,units=m
+let avetemp=(tem1[z=5,t=15-jan-2000:15-dec-2022]+tem1[z=100,t=15-jan-2000:15-dec-2022])/2  !Average Temperature of ML taken as temp at 100m,units=oC
+
+save/file=gpi_parameters.nc/clobber LW,d26,avetemp,absvor1
+CANCEL DATA/ALL
+CANCEL VARIABLE/ALL
+CANCEL REGION
+
+********************************************************
+use gpi_parameters.nc
+set region/t=15-jan-2000:15-dec-2022/y=0:30/x=30:120
+let p=7.4e-3
+
+let vor = p*(abs((1e5)*absvor1)^0.9)
+let temp = (avetemp/26)^7.64
+let flux = (LW/45)^(-2.73)
+let iso = (d26/80)^0.25
+
+let gpi=vor[gt=flux]*temp[gt=flux]*flux*iso[l=@fnr,gt=flux]
+save/file=gpi.nc/clobber gpi
